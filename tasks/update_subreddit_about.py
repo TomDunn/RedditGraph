@@ -1,42 +1,38 @@
 import praw
-from sqlalchemy.sql.expression import asc
 
 from db import Session
 from models.Subreddit import Subreddit
-from models.DiscoveredSub import DiscoveredSub
+from helpers.DBIterator import DBIterator
+from helpers.RFactory import r
 
 def main(notify):
 
-    r = praw.Reddit(user_agent='subreddit info grabber 1.0 by u/lungfungus')
-    r.config.log_requests = 2
     session = Session()
     total = session.query(Subreddit).count()
     count = 0
 
-    if notify is not None:
-        notify("starting update of %d subs" % total)
+    notify("starting update of %d subs" % total)
 
-    updated = set()
+    query   = session.query(Subreddit).order_by("scraped_time asc")
+    dbi     = DBIterator(query=query, use_offset=None)
 
-    while count < total:
-        for subreddit in session.query(Subreddit).order_by(asc(Subreddit.scraped_time)).limit(20):
+    for subreddit in dbi.results_iter():
 
-            count += 1
-            updated.add(subreddit.id)
+        count += 1
 
-            try:
+        try:
+            subreddit.update_from_praw(r.get_subreddit(subreddit.url.split('/')[2]))
+            session.add(subreddit)
 
-                subreddit.update_from_praw(r.get_subreddit(subreddit.url.split('/')[2]))
-                session.add(subreddit)
+        except (praw.requests.exceptions.HTTPError, praw.errors.InvalidSubreddit) as e:
+            print "ERROR", str(e)
+            subreddit.touch()
+            session.add(subreddit)
 
-            except (praw.requests.exceptions.HTTPError, praw.errors.InvalidSubreddit) as e:
-                print "ERROR", str(e)
-                subreddit.touch()
-                session.add(subreddit)
+        if count % 2000 == 0 and notify is not None:
+            notify("at %d of %d" % (count, total))
 
-            if count % 2000 == 0 and notify is not None:
-                notify("at %d of %d" % (count, total))
-
+        if count % 10 == 0:
             session.commit()
 
-    print "updated is of length %d" % len(updated)
+    session.commit()

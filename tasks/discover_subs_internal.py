@@ -4,6 +4,7 @@ from HTMLParser import HTMLParser
 from db import Session
 from models.Subreddit import Subreddit
 from models.DiscoveredSub import DiscoveredSub
+from helpers.DBIterator import DBIterator
 from helpers.util import find_sub_links
 
 def add_new_subs(session, subs):
@@ -25,8 +26,10 @@ def main(notify):
     notify("discovering from %d exiting" % subreddit_count)
 
     discovered_subs = set()
+    query = session.query(Subreddit.description_html).filter(Subreddit.description_html != None)
+    dbi = DBIterator(query=query)
 
-    for sub in session.query(Subreddit.description_html).filter(Subreddit.description_html != None):
+    for sub in dbi.results_iter():
         links = set(map(lambda s: u'/r/' + s.lower().strip() + u'/', find_sub_links(parser.unescape(sub.description_html))))
 
         if len(links) == 0:
