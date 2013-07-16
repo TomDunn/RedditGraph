@@ -1,4 +1,4 @@
 from web.application import app
 
-def main():
+def main(notify):
     app.run()

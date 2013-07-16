@@ -6,7 +6,7 @@ from models.Community import Community
 from models.SubredditCommunityAssociation import association_table
 from tasks.coalesce_communities import get_coalesced_communities
 
-def main():
+def main(notify):
 
     # read in the graph
     g  = nx.read_gexf('data/subreddits_edged_by_description_links.gexf')

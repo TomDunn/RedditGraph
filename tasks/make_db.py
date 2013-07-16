@@ -5,5 +5,5 @@ from models.SubredditCommunityAssociation import association_table
 from models.DiscoveredSub import DiscoveredSub
 from models.WikiEntry import WikiEntry
 
-def main():
+def main(notify):
     Base.metadata.create_all(engine)

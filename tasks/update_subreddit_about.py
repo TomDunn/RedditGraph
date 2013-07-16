@@ -5,7 +5,7 @@ from db import Session
 from models.Subreddit import Subreddit
 from models.DiscoveredSub import DiscoveredSub
 
-def main(notify=None):
+def main(notify):
 
     r = praw.Reddit(user_agent='subreddit info grabber 1.0 by u/lungfungus')
     r.config.log_requests = 2

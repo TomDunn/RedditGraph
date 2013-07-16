@@ -6,7 +6,7 @@ import  networkx as nx
 from    Submission import Submission
 from    util       import initialize_node
 
-def main():
+def main(notify):
     db = sqlite3.connect('data/submissions.sqlite')
     g  = nx.Graph()
 

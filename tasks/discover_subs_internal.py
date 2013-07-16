@@ -15,11 +15,15 @@ def add_new_subs(session, subs):
     session.commit()
     subs.clear()
 
-def main():
+def main(notify):
+
     parser = HTMLParser()
     session = Session()
 
-    starting_count = session.query(Subreddit).count()
+    subreddit_count = session.query(Subreddit).count()
+    start_count = session.query(DiscoveredSub).count()
+    notify("discovering from %d exiting" % subreddit_count)
+
     discovered_subs = set()
 
     for sub in session.query(Subreddit.description_html).filter(Subreddit.description_html != None):
@@ -42,7 +46,7 @@ def main():
         add_new_subs(session, discovered_subs)
 
     end_count = session.query(DiscoveredSub).count()
-    print "started with: %d, found %d" % (starting_count, end_count)
+    notify("found additional %d" % (end_count - start_count))
 
 if __name__=='__main__':
     main()

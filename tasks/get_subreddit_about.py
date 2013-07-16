@@ -4,15 +4,13 @@ import json
 import os
 import sys
 
-from twitter import TwitterHTTPError, TwitterError
 import praw
 
-from helpers.Twitter import t as tweeter
 from db import Session
 from models.Subreddit import Subreddit
 from models.DiscoveredSub import DiscoveredSub
 
-def main():
+def main(notify):
     r = praw.Reddit(user_agent='subreddit info grabber 1.0 by u/lungfungus')
     r.config.log_requests = 2
     session = Session()
@@ -57,10 +55,7 @@ def main():
         session.commit()
 
         if count % 2000 == 0:
-            try:
-                tweeter.statuses.update(status="@ThomasDunn4 #SubExpander is at %d" % count)
-            except (TwitterHTTPError, TwitterError) as e:
-                print "ERROR", "TWITTER", str(e)
+            notify("is at %d" % count)
 
     if len(session.dirty) > 0:
         session.commit()

@@ -11,7 +11,7 @@ from helpers.util import find_sub_links, initialize_node
 from db import Session
 from models.Subreddit import Subreddit
 
-def main():
+def main(notify):
 
     g = nx.Graph()
     out_filename = 'data/subreddits_edged_by_description_links.gexf'
