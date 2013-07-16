@@ -23,17 +23,25 @@ def expand_node(prefixes, g, node):
 
     return names
 
-def main():
+def main(notify=None):
+
+    if notify is None:
+        notify = lambda s: s
 
     g  = nx.read_gexf('data/subreddits_edged_by_description_links.gexf')
     g1 = nx.Graph()
 
-    communities = get_coalesced_communities(g)
+    notify("drawing a community graph for %d subreddits" % len(g))
+
+    communities = get_coalesced_communities(g, no_overlap=True)
     all_members = set()
+    duplicated = set()
 
     for c in communities:
         color = choice(colors)
         for n in c.members:
+            if n in all_members:
+                duplicated.add(n)
             all_members.add(n)
             node_id = make_node_id(c.id, n)
             g1.add_node(node_id)
@@ -41,6 +49,7 @@ def main():
             g1.node[node_id]['viz'] = color
 
     print "members of nodes in communities is %d" % len(all_members)
+    print "number of duplicated nodes %d" % len(duplicated)
 
     prefixes = set(map(lambda c: c.id, communities))
     prefixes.add('none')

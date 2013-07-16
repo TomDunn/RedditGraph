@@ -13,8 +13,12 @@ from helpers.Twitter import t as tweeter
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('task', help='A task to run')
+    parser.add_argument('--no_notify', action='store_true')
     args = parser.parse_args()
-    update = lambda s: notify("@%s #%s_%s %s" % ('ThomasDunn4', args.task, str(uuid4())[0:3], s))
+
+    update = lambda s: notify("@%s #%s_%s %s" % ('ThomasDunn4', args.task, str(uuid4())[0:3], s)) or log_message(s)
+    if args.no_notify:
+        update = lambda s: log_message(s)
 
     module =  __import__(task_map[args.task])
 
@@ -32,10 +36,13 @@ def main():
 
     mins, secs  = divmod(finish_time - start_time, 60)
     hours, mins = divmod(mins, 60)
-    status = "@%s #%s has finished. Time taken: %02d:%02d:%02d" % ('ThomasDunn4', args.task, hours, mins, secs)
+    status = "Time taken: %02d:%02d:%02d" % (hours, mins, secs)
 
     if finish_time - start_time >= 120.0:
         update(status)
+
+def log_message(message):
+    print message
 
 def notify(message):
     try:

@@ -47,7 +47,7 @@ def coalesce_communities(communities, min_overlap):
 
     return communities
 
-def get_coalesced_communities(g):
+def get_coalesced_communities(g, no_overlap=False):
 
     average_clique_size = int(get_average_clique_size(g))
     communities = map(lambda c: Community(c), nx.k_clique_communities(g, average_clique_size))
@@ -60,7 +60,38 @@ def get_coalesced_communities(g):
     communities = coalesce_communities(communities, .7)
     communities = filter(lambda c: len(c.members) > 1, communities)
 
-    print 'finished coalescion'
+    if not no_overlap:
+        return communities
+
+    members = set()
+    overlapping_subs = set()
+
+    for c in communities:
+        for s in c.members:
+            if s in members:
+                overlapping_subs.add(s)
+            else:
+                members.add(s)
+
+    for overlapped in overlapping_subs:
+        best_weight = 0
+        best_comm = None
+
+        overlapped_comms = filter(lambda c: overlapped in c.members, communities)
+        for community in overlapped_comms:
+            source = overlapped
+            weight = 0
+            for target in community.members:
+                if g.has_edge(source, target):
+                    weight += g[source][target]['weight']
+
+            if weight > best_weight:
+                best_weight = weight
+                best_comm = community
+
+        for c in overlapped_comms:
+            c.members.remove(overlapped)
+        best_comm.members.add(overlapped)
     return communities
 
 def main():
