@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>HI</title>
+        <link rel="stylesheet" href="/static/css/reset.css" />
+        <link rel="stylesheet" href="/static/css/style.css" />
+    </head>
+    <body>
+        {% block body %}
+            {% block content %}
+                <article>
+                    {% block main_content %}
+                        <p>Hello, world!</p>
+                    {% endblock %}
+                </article>
+            {% endblock content %}
+        {% endblock body %}
+        {% block body_scripts %}
+        {% endblock body_scripts %}
+    </body>
+</html>

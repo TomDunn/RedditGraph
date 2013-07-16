@@ -1,0 +1,13 @@
+{% extends "page_layout.html" %}
+{% block main_content %}
+    <ul>
+        {% for subreddit in subreddits %}
+            <li>
+                <p><a href="http://reddit.com{{ subreddit.url }}">{{ subreddit.title }}</a></p>
+                <img src="{{ subreddit.header_img }}" />
+                <p>{{ subreddit.description }}</p>
+                <p>{{ subreddit.header_title }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
