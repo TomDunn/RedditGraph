@@ -1,2 +1,5 @@
 *.pyc
 data/*
+log.txt
+e.txt
+db/db.sqlite
