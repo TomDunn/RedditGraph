@@ -29,10 +29,10 @@ class DBIterator():
         else:
             self._limit = self._query._limit
 
-            if self._limit < self._query_limit:
-                self._query_limit = self._limit
+        if self._limit < self._query_limit:
+            self._query_limit = self._limit
 
-            self._query = self._query.limit(self._query_limit)
+        self._query = self._query.limit(self._query_limit)
 
     def _get_offset(self, num=None):
         if self._offset == "_count":
