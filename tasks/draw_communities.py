@@ -48,6 +48,6 @@ def main(notify=None):
         target = g1.node[edge[1]]
 
         if source['comm_id'] == target['comm_id']:
-            edge[2]['weight'] = edge[2]['weight'] * 20
+            edge[2]['weight'] = edge[2]['weight'] * 10
 
     nx.write_gexf(g1, 'data/communities.gexf')

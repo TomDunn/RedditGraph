@@ -8,6 +8,7 @@ import networkx as nx
 from BeautifulSoup import BeautifulSoup
 
 from helpers.util import find_sub_links, initialize_node
+from helpers.DBIterator import DBIterator
 from db import Session
 from models.Subreddit import Subreddit
 
@@ -17,8 +18,10 @@ def main(notify):
     out_filename = 'data/subreddits_edged_by_description_links.gexf'
     parser = HTMLParser()
     session = Session()
+    query = session.query(Subreddit)
+    dbi = DBIterator(query=query)
 
-    for subreddit in session.query(Subreddit):
+    for subreddit in dbi.results_iter():
         sub = subreddit.url.split('/')[2].lower()
 
         initialize_node(g,sub)
