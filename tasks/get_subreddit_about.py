@@ -33,9 +33,9 @@ def main(notify):
             session.add(sub)
             session.add(sub_stub)
 
-        except ValueError as e:
+        except (praw.errors.RedirectException, praw.errors.InvalidSubreddit) as e:
             print "ERROR", str(e)
-            sub_stub.status = "E_RETRY"
+            sub_stub.status = "E_NO_RETRY"
             session.add(sub_stub)
         except praw.requests.exceptions.HTTPError as e:
             print "ERROR", str(e)
@@ -44,9 +44,9 @@ def main(notify):
             else:
                 sub_stub.status = "E_RETRY"
             session.add(sub_stub)
-        except praw.errors.InvalidSubreddit as e:
+        except ValueError as e:
             print "ERROR", str(e)
-            sub_stub.status = "E_NO_RETRY"
+            sub_stub.status = "E_RETRY"
             session.add(sub_stub)
 
         if count % 25 == 0:

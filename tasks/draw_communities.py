@@ -1,6 +1,8 @@
 from itertools import product
 from random import choice
+
 import networkx as nx
+
 from helpers.colors import colors
 from tasks.coalesce_communities import get_coalesced_communities
 
@@ -14,15 +16,12 @@ def main(notify=None):
 
     notify("drawing a community graph for %d subreddits" % len(g))
 
-    communities = get_coalesced_communities(g, no_overlap=True)
+    communities = filter(lambda c: len(c.members) > 0, get_coalesced_communities(g, no_overlap=True))
     all_members = set()
 
     for c in communities:
         color = choice(colors)
         for n in c.members:
-
-            if len(n) < 1:
-                continue
 
             all_members.add(n)
             g1.add_node(n)
@@ -49,5 +48,8 @@ def main(notify=None):
 
         if source['comm_id'] == target['comm_id']:
             edge[2]['weight'] = edge[2]['weight'] * 10
-
+        if edge[0] not in g1 or edge[1] not in g1:
+            print edge[0], edge[1]
+            print edge[0] in g1, edge[1] in g1
+            print "-----"
     nx.write_gexf(g1, 'data/communities.gexf')
