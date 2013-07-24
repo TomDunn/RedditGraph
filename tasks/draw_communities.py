@@ -6,10 +6,7 @@ import networkx as nx
 from helpers.colors import colors
 from tasks.coalesce_communities import get_coalesced_communities
 
-def main(notify=None):
-
-    if notify is None:
-        notify = lambda s: s
+def main(notify):
 
     g  = nx.read_gexf('data/subreddits_edged_by_description_links.gexf')
     g1 = nx.Graph()
@@ -48,8 +45,5 @@ def main(notify=None):
 
         if source['comm_id'] == target['comm_id']:
             edge[2]['weight'] = edge[2]['weight'] * 10
-        if edge[0] not in g1 or edge[1] not in g1:
-            print edge[0], edge[1]
-            print edge[0] in g1, edge[1] in g1
-            print "-----"
+
     nx.write_gexf(g1, 'data/communities.gexf')
