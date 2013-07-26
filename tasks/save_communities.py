@@ -16,11 +16,15 @@ def main(notify):
     # clean out existing associations and communities
     for c in session.query(Community):
         c.subreddits[:] = []
-    session.commit()
 
+    session.commit()
     session.query(Community).delete()
 
     communities = get_coalesced_communities(g)
+    communities = filter(lambda c: len(c.members) > 0, communities)
+    notify("Detected %d communities" % len(communities))
+
+    count = 0
     for c in communities:
         comm = Community()
         comm.name = "test"
@@ -33,6 +37,10 @@ def main(notify):
             comm.subreddits.append(sub)
 
         session.add(comm)
+        count += 1
+
+        if count % 200 == 0:
+            notify("finished %d" % count)
         #session.commit()
 
     # commit the new communities
