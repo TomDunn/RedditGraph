@@ -8,5 +8,6 @@ task_map = {
     'update_subreddit_about':   'tasks.update_subreddit_about',
     'graph_by_sub_descriptions':'tasks.graph_by_sub_descriptions',
     'draw_communities':         'tasks.draw_communities',
-    'get_posts':                'tasks.get_posts'
+    'get_posts':                'tasks.get_posts',
+    'get_subreddits':           'tasks.get_subreddits'
 }

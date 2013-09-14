@@ -54,7 +54,7 @@ class Post(Base):
         if p.author is not None:
             self.author_id      = p.author.name
 
-        self.subreddit_id   = p.subreddit_id
+        self.subreddit_id   = p.subreddit_id.split('_')[1]
         self.edited         = float(p.edited)
 
         self.score  = p.score

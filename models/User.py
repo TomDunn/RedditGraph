@@ -22,6 +22,8 @@ class User(Base):
     is_mod  = Column(Boolean)
     has_verified_email = Column(Boolean)
 
+    has_public_likes = Column(Boolean, default=True)
+
     def update_from_praw(self, p):
         self.id     = p.id
         self.name   = p.name

@@ -6,6 +6,7 @@ from models.DiscoveredSub import DiscoveredSub
 from models.WikiEntry import WikiEntry
 from models.Post import Post
 from models.User import User
+from models.UserPostVote import UserPostVote
 
 def main(notify):
     Base.metadata.create_all(engine)
