@@ -60,6 +60,9 @@ class Subreddit(Base):
     def touch(self):
         self.scraped_time = time.mktime(time.gmtime())
 
+    def url_to_name(self):
+        return self.url.split('/')[2]
+
     @classmethod
     def make_url(cls, subreddit_name):
         return u'/r/' + subreddit_name + '/'
