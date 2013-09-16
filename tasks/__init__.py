@@ -9,5 +9,6 @@ task_map = {
     'graph_by_sub_descriptions':'tasks.graph_by_sub_descriptions',
     'draw_communities':         'tasks.draw_communities',
     'get_posts':                'tasks.get_posts',
-    'get_subreddits':           'tasks.get_subreddits'
+    'get_subreddits':           'tasks.get_subreddits',
+    'get_comments':             'tasks.get_comments'
 }

@@ -8,20 +8,23 @@ def main(notify):
 
     start = session.query(Post).count()
     notify("Getting posts, initial count: %d" % start)
+    count = 0
 
     for post in gen:
         try: 
+            count += 1
+
             p = Post()
             p.update_from_praw(post)
-            session.merge(p)
+            p = session.merge(p)
 
-            if (len(session.dirty) == 100):
-                print "Saving"
+            session.add(p)
+
+            if (count % 50 == 0):
                 session.commit()
 
-        except AttributeError as e:
-            print e
-            print post.id, post.title
+        except AttributeError:
+            pass
 
     session.commit()
 

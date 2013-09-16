@@ -21,11 +21,14 @@ class Post(Base):
     title           = Column(String)
     thumbnail       = Column(String)
 
-    author_id   = Column(String, ForeignKey('users.id'))
-    author      = relationship('User')
-    subreddit_id= Column(String, ForeignKey('subreddits.id'))
-    subreddit   = relationship('Subreddit')
-    edited      = Column(Float)
+    author_id    = Column(String, ForeignKey('users.id'))
+    check_author = Column(Boolean, default = True)
+    author       = relationship('User')
+
+    subreddit_id = Column(String, ForeignKey('subreddits.id'))
+    check_sub    = Column(Boolean, default = True)
+    subreddit    = relationship('Subreddit')
+    edited       = Column(Float)
 
     score   = Column(Integer)
     downs   = Column(Integer)

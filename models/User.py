@@ -1,6 +1,6 @@
 import time
 
-from sqlalchemy import Column, Integer, String, Boolean, Float
+from sqlalchemy import Column, Integer, String, Boolean, Float, SmallInteger
 
 from db import Base
 
@@ -22,7 +22,9 @@ class User(Base):
     is_mod  = Column(Boolean)
     has_verified_email = Column(Boolean)
 
-    has_public_likes = Column(Boolean, default=True)
+    # 0 = unknown, 1 = yes, 2 = no
+    has_public_likes = Column(SmallInteger, default = 0)
+    active           = Column(SmallInteger)
 
     def update_from_praw(self, p):
         self.id     = p.id
@@ -39,3 +41,9 @@ class User(Base):
         self.is_gold    = p.is_gold
         self.is_mod     = p.is_mod
         self.has_verified_email = p.has_verified_email
+
+    def activate(self):
+        self.active = 1
+
+    def deactivate(self):
+        self.active = 0
