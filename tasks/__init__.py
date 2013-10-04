@@ -1,5 +1,6 @@
 task_map = {
     'make_db':                  'tasks.make_db',
+    'rm_db':                    'tasks.rm_db',
     'coalesce_communities':     'tasks.coalesce_communities',
     'discover_subs_internal':   'tasks.discover_subs_internal',
     'save_communities':         'tasks.save_communities',

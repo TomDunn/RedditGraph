@@ -1,5 +1,8 @@
 from db import Session
 from models.Post import Post
+from models.Subreddit import Subreddit
+from models.User import User
+from models.Util import Util
 from helpers.RFactory import r
 
 def main(notify):
@@ -11,22 +14,17 @@ def main(notify):
     count = 0
 
     for post in gen:
-        try: 
-            count += 1
+        count += 1
 
-            p = Post()
-            p.update_from_praw(post)
-            p = session.merge(p)
+        p = Post.get_or_create(session, post.id)
+        p.update_from_praw(post)
 
-            session.add(p)
+        author_name = Util.patch_author(post.author)
+        Util.update_user(User, p, session, author_name)
+        Util.update_subreddit(Subreddit, p, session, post.subreddit_id)
 
-            if (count % 50 == 0):
-                session.commit()
-
-        except AttributeError:
-            pass
-
-    session.commit()
+        session.add(p)
+        session.commit()
 
     diff = session.query(Post).count() - start
     notify("Added %d posts" % diff)

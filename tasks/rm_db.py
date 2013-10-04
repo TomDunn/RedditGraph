@@ -11,4 +11,4 @@ from models.Comment import Comment
 from models.UserLock import UserLock
 
 def main(notify):
-    Base.metadata.create_all(engine)
+    Base.metadata.drop_all(bind=engine)

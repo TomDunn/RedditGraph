@@ -3,5 +3,5 @@ from db import Base
 
 association_table = Table('sc_association', Base.metadata,
         Column('community_id', Integer, ForeignKey('communities.id')),
-        Column('subreddit_id', String,  ForeignKey('subreddits.id'))
+        Column('subreddit_id', Integer,  ForeignKey('subreddits.id'))
 )

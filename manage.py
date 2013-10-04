@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from twitter import TwitterHTTPError, TwitterError
 
+from models import *
 from tasks import task_map
 from helpers.Twitter import t as tweeter
 

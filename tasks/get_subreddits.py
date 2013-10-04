@@ -4,29 +4,18 @@ from helpers.RFactory import r
 
 def main(notify):
     session = Session()
-    gen = r.get_popular_subreddits(limit=2000)
+    gen = r.get_popular_subreddits(limit=1000)
 
-    start = session.query(Subreddit).count()
-    count = 0
-    notify("Getting subs, initial count: %d" % start)
+    count = session.query(Subreddit).count()
+    notify("Getting subs, initial count: %d" % count)
 
-    for sub in gen:
-        try: 
-            count += 1
+    for praw_subreddit in gen:
+        count += 1
 
-            s = Subreddit()
-            s.update_from_praw(sub)
-            session.merge(s)
+        subreddit = Subreddit.get_or_create(session, praw_subreddit.id)
+        subreddit.update_from_praw(praw_subreddit)
 
-            if (count % 100 == 0):
-                print "Saving"
-                session.commit()
-
-        except AttributeError as e:
-            print e
-            print sub.id, sub.title
+        session.add(subreddit)
 
     session.commit()
-
-    diff = session.query(Subreddit).count() - start
-    notify("Added %d subs" % diff)
+    notify("Now have %d" % count)

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, String, SmallInteger, ForeignKey
+from sqlalchemy import Column, String, SmallInteger, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+from sqlalchemy.schema import Sequence
 
 from db import Base
 from models.User import User
@@ -8,26 +9,31 @@ from models.Post import Post
 class UserPostVote(Base):
     __tablename__ = 'user_post_votes'
 
-    id = Column(String, unique=True, primary_key=True)
+    id   = Column(Integer, Sequence('user_post_votes_seq'), unique=True, primary_key=True)
     vote = Column(SmallInteger, default=0)
 
-    post_id = Column(String, ForeignKey('posts.id'))
+    post_id = Column(Integer, ForeignKey('posts.id'))
     post    = relationship('Post')
 
-    user_id = Column(String, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
     user    = relationship('User')
 
     @classmethod
-    def create(cls, user, post, vote = 0):
+    def create(cls, session, user, post, vote = 0):
         inst = cls()
 
         inst.post_id = post.id
         inst.user_id = user.id
         inst.vote    = vote
-        inst.id      = UserPostVote.make_id(user, post)
 
+        Util.add_and_refresh(inst)
         return inst
 
-    @staticmethod
-    def make_id(user, post):
-        return user.id + '_' + post.id
+    @classmethod
+    def get_or_create(cls, session, user, post, vote):
+        vote = session.query(cls).filter(cls.post_id == post.id, cls.user_id == user.id).first()
+
+        if vote == None:
+            vote = cls.create(session, user, post, vote)
+
+        return vote
