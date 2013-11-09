@@ -11,5 +11,6 @@ task_map = {
     'draw_communities':         'tasks.draw_communities',
     'get_posts':                'tasks.get_posts',
     'get_subreddits':           'tasks.get_subreddits',
-    'get_comments':             'tasks.get_comments'
+    'get_comments':             'tasks.get_comments',
+    'public_users':             'tasks.public_users'
 }
