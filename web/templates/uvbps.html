@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>HI</title>
+    </head>
+    <body>
+        <ul>
+            {% for uvbps in gen %}
+                <li>
+                    <p> {{ uvbps.intersect }} </p>
+                    <p> {{ uvbps.similarity }} </p>
+                    <ul>
+                        <li>{{ uvbps.post1.title }}</li>
+                        <li>{{ uvbps.post1.score }}</li>
+                    </ul>
+                    <ul>
+                        <li>{{ uvbps.post2.title }}</li>
+                        <li>{{ uvbps.post2.score }}</li>
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

@@ -1,13 +1,20 @@
 import json
 from uuid import uuid4
+import pprint
 
 from flask import Flask, render_template, jsonify, request
+from sqlalchemy.orm import aliased
+from sqlalchemy import or_, func
 
 from db import Session
 from models.Subreddit import Subreddit
 from models.Community import Community
+from models.Post import Post
 from models.User import User
 from models.UserLock import UserLock
+from models.UserVoteBasedPostSimilarities import UserVoteBasedPostSimilarities as UVBPS
+from models.SubredditKeyword import SubredditKeyword
+from models.Util import Util
 
 app = Flask(__name__)
 app.debug = True
@@ -15,6 +22,32 @@ app.debug = True
 @app.route('/')
 def default():
     return render_template('page_layout.html')
+
+@app.route('/uvbps')
+def uvbps():
+    session = Session()
+
+    post_alias = aliased(Post)
+
+    gen = session.query(UVBPS) \
+        .filter(UVBPS.intersect >= 5) \
+        .join(UVBPS.post1) \
+        .join(post_alias, UVBPS.post1) \
+        .filter(or_(Post.score <= 1000, post_alias.score <= 1000)) \
+        .order_by(UVBPS.intersect.desc()) \
+        .limit(500)
+    return render_template('uvbps.html', gen=gen)
+
+@app.route('/subreddit_keywords')
+def subreddit_keywords():
+    session = Session()
+
+    subreddit_name = request.args.get('subreddit', 'python')
+    gen = session.query(SubredditKeyword) \
+        .join(Subreddit) \
+        .filter(func.lower(Subreddit.display_name) == func.lower(subreddit_name))
+
+    return render_template('subreddit_keywords.html', gen=gen)
 
 @app.route('/connected/<subreddit>')
 def get_connected_subreddits(subreddit):
@@ -75,6 +108,7 @@ def put_batch():
     data = json.loads(request.data)
     worker = data['id']
     users  = data['users']
+    users = filter(lambda u: u is not None, users)
     usernames = [user['name'] for user in users]
 
     for lock in session.query(UserLock).join(User) \
@@ -83,7 +117,6 @@ def put_batch():
             if u['name'] == lock.user.name:
                 if 'error' in u:
                     eId = str(uuid4())
-                    print "ERROR:", eId
                     lock.user.reddit_id = eId
                 else:
                     lock.user.update_from_json(u)
@@ -99,3 +132,35 @@ def put_batch():
     session.close()
 
     return jsonify({'received':'true'})
+
+@app.route('/links', methods=['POST'])
+def post_links():
+    session = Session()
+    data = json.loads(request.data)
+
+    for link in data['links']:
+        post = Post.get_or_create(session, link['reddit_id'])
+        subreddit = Subreddit.get_or_create(session, link['sub_name'])
+        user = User.get_or_create(session, link['authorname'])
+
+        post.subreddit_id   = subreddit.id
+        post.author_id      = user.id
+
+        post.domain = link['domain']
+        post.title  = link['title']
+        post.url    = link['url']
+        post.score  = link['score']
+        post.downs  = link['downs']
+        post.ups    = link['ups']
+
+        post.is_self = link['is_self']
+        post.over_18 = link['over_18']
+        post.thumbnail = link['thumbnail']
+        post.created = float(link['created'])
+        post.scraped_time = Util.now()
+
+        session.add(post)
+
+    session.commit()
+    session.close()
+    return jsonify({'received':True})

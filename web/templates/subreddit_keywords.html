@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>HI</title>
+    </head>
+    <body>
+        <ul>
+            {% for keyword in gen %}
+                <li>
+                    {{keyword.keyword}}  {{keyword.tfidf}}
+                </li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

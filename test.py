@@ -6,6 +6,7 @@ from models.UserMeta import UserMeta
 from models.UserLock import UserLock
 from models.Post import Post
 from helpers.DBIterator import DBIterator as DBI
+from helpers.RFactory import r
 
 s = Session()
 DI = DBI
@@ -15,3 +16,4 @@ P = Post
 U = User
 L = UserLock
 M = UserMeta
+R = r
