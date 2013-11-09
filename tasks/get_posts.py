@@ -7,7 +7,7 @@ from helpers.RFactory import r
 
 def main(notify):
     session = Session()
-    gen = r.get_subreddit('all').get_top(limit=1000)
+    gen = r.get_subreddit('all').get_top(limit=3000)
 
     start = session.query(Post).count()
     notify("Getting posts, initial count: %d" % start)
@@ -21,7 +21,7 @@ def main(notify):
 
         author_name = Util.patch_author(post.author)
         Util.update_user(User, p, session, author_name)
-        Util.update_subreddit(Subreddit, p, session, post.subreddit_id)
+        Util.update_subreddit(Subreddit, p, session, post.subreddit.display_name)
 
         session.add(p)
         session.commit()

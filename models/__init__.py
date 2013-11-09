@@ -1,1 +1,1 @@
-__all__ = ["Comment", "Post", "Subreddit", "User", "UserLock", "UserMeta"]
+__all__ = ["Comment", "Post", "Subreddit", "User", "UserLock", "UserMeta", "UserVoteBasedPostSimilarities", "SubredditKeyword"]

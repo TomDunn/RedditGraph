@@ -9,6 +9,8 @@ from models.UserMeta import UserMeta
 from models.UserPostVote import UserPostVote
 from models.Comment import Comment
 from models.UserLock import UserLock
+from models.UserVoteBasedPostSimilarities import UserVoteBasedPostSimilarities
+from models.SubredditKeyword import SubredditKeyword
 
 def main(notify):
     Base.metadata.drop_all(bind=engine)
