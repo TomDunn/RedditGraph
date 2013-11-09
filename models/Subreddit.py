@@ -15,14 +15,14 @@ class Subreddit(Base):
     description_html    = Column(String)
     description         = Column(String)
     public_description  = Column(String)
-    display_name        = Column(String)
+    display_name        = Column(String, unique=True, primary_key=True, nullable=False)
 
     title   = Column(String)
     url     = Column(String, unique=True)
 
     name    = Column(String)
     id      = Column(Integer, Sequence('subreddits_seq'), unique=True, primary_key=True)
-    reddit_id = Column(String, primary_key=True, unique=True)
+    reddit_id = Column(String, unique=True, default = None, nullable = True)
 
     created     = Column(Float)
     created_utc = Column(Float)
@@ -33,9 +33,9 @@ class Subreddit(Base):
     over18          = Column(Boolean)
 
     @classmethod
-    def create(cls, session, subreddit_id):
+    def create(cls, session, display_name):
         sub = cls()
-        sub.reddit_id = Util.plain_id(subreddit_id)
+        sub.display_name    = display_name
 
         Util.add_and_refresh(session, sub)
         return sub
@@ -57,7 +57,7 @@ class Subreddit(Base):
 
         self.created        = p.created
         self.created_utc    = p.created_utc
-        self.scraped_time   = time.mktime(time.gmtime())
+        self.scraped_time   = Util.now()
 
         self.accounts_active = p.accounts_active
         self.subscribers = p.subscribers
@@ -74,11 +74,10 @@ class Subreddit(Base):
         return u'/r/' + subreddit_name + '/'
 
     @classmethod
-    def get_or_create(cls, session, subreddit_id):
-        subreddit_id = Util.plain_id(subreddit_id)
-        sub = session.query(cls).filter(cls.reddit_id == subreddit_id).first()
+    def get_or_create(cls, session, display_name):
+        sub = session.query(cls).filter(cls.display_name == display_name).first()
         
         if (sub == None):
-            sub = cls.create(session, subreddit_id)
+            sub = cls.create(session, display_name)
 
         return sub

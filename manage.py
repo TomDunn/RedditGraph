@@ -17,7 +17,8 @@ def main():
     parser.add_argument('--no_notify', action='store_true')
     args = parser.parse_args()
 
-    update = lambda s: notify("@%s #%s_%s %s" % ('ThomasDunn4', args.task, str(uuid4())[0:3], s)) or log_message(s)
+    task_id = str(uuid4())[0:3]
+    update = lambda s: notify("@%s #%s_%s %s" % ('ThomasDunn4', args.task, task_id, s)) or log_message(s)
     if args.no_notify:
         update = lambda s: log_message(s)
 

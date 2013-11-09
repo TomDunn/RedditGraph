@@ -20,7 +20,7 @@ class Util():
 
     @staticmethod
     def now():
-        return time.mktime(time.gmtime())
+        return time.time()
 
     @staticmethod
     def plain_id(reddit_id):
@@ -35,9 +35,8 @@ class Util():
         obj.author_id = user.id
 
     @staticmethod
-    def update_subreddit(cls, obj, session, subreddit_id):
-        subreddit_id = Util.plain_id(subreddit_id)
-        sub = cls.get_or_create(session, subreddit_id)
+    def update_subreddit(cls, obj, session, display_name):
+        sub = cls.get_or_create(session, display_name)
         obj.subreddit_id = sub.id
 
     @staticmethod
