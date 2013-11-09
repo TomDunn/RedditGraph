@@ -1,3 +1,4 @@
+from os import environ
 import twitter
 
 """
@@ -11,9 +12,9 @@ import twitter
 """
 t = twitter.Twitter(
     auth=twitter.OAuth
-        (   '<YOUR CONSUMER KEY>',
-            '<YOUR CONSUMER SECRET>',
-            '<YOUR ACCESS TOKEN KEY>',
-            '<YOUR ACCESS TOKEN SECRET>'
+        (   environ['TWITTER_CONSUMER_KEY'],
+            environ['TWITTER_CONSUMER_SECRET'],
+            environ['TWITTER_ACCESS_TOKEN_KEY'],
+            environ['TWITTER_ACCESS_TOKEN_SECRET']
         )
     )
