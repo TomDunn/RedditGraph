@@ -9,7 +9,7 @@ celery = Celery('tasks.config.celery',
                 include=['tasks.get_comments'])
 
 celery.conf.update(
-    CELERY_TASK_RESULT_EXPIRES=60*5,
+    CELERY_TASK_RESULT_EXPIRES=3600,
     CELERY_ACCEPT_CONTENT=['json'],
     CELERY_TASK_SERIALIZER='json',
     CELERY_RESULT_SERIALIZER='json',

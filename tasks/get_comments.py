@@ -23,12 +23,13 @@ def main(notify):
     gen = session.query(Subreddit) \
         .filter(Subreddit.display_name != Subreddit.get_invalid_text()) \
         .order_by(Subreddit.scraped_time) \
-        .limit(2)
+        .limit(100)
 
     for subreddit in gen:
+        print subreddit.display_name
         subreddit_names.add(subreddit.display_name)
 
-    task_group = group(run.s(name,top=2) for name in subreddit_names)
+    task_group = group(run.s(name,top=30) for name in subreddit_names)
     results = task_group.apply_async()
 
     for result in results.iterate():
@@ -45,8 +46,9 @@ def main(notify):
 def update(session, result):
     praw_subreddit = JSONObject(**result['subreddit'])
     subreddit = Subreddit.get_or_create(session, praw_subreddit.display_name)
-    #subreddit.update_from_praw(praw_subreddit)
-    #session.add(subreddit)
+    subreddit.update_from_praw(praw_subreddit)
+    print subreddit.display_name
+    session.add(subreddit)
     
     for submission_comments in result['submissions']:
         praw_submission, comments = submission_comments
@@ -104,3 +106,8 @@ def run(name, top=40):
 
     except praw.errors.InvalidSubreddit:
         return name
+    except praw.requests.exceptions.HTTPError as e:
+        if '404' in str(e) or '403' in str(e):
+            return name
+        else :
+            return ''
