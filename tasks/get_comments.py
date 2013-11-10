@@ -33,7 +33,7 @@ def main(notify):
     results = task_group.apply_async()
 
     for result in results.iterate():
-        if type(result) == str:
+        if type(result) in [str, unicode]:
             print "NONE", '\n'
             subreddit = session.query(Subreddit).filter(Subreddit.display_name == result).one()
             subreddit.mark_invalid()
@@ -44,10 +44,10 @@ def main(notify):
         update(session, result)
 
 def update(session, result):
+    print result['subreddit']['display_name']
     praw_subreddit = JSONObject(**result['subreddit'])
     subreddit = Subreddit.get_or_create(session, praw_subreddit.display_name)
     subreddit.update_from_praw(praw_subreddit)
-    print subreddit.display_name
     session.add(subreddit)
     
     for submission_comments in result['submissions']:
@@ -109,5 +109,5 @@ def run(name, top=40):
     except praw.requests.exceptions.HTTPError as e:
         if '404' in str(e) or '403' in str(e):
             return name
-        else :
+        else:
             return ''
