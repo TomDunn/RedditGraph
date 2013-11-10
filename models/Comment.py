@@ -1,5 +1,3 @@
-import time
-
 from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Sequence
@@ -65,4 +63,4 @@ class Comment(Base):
 
         self.created        = p.created
         self.created_utc    = p.created_utc
-        self.scraped_time   = time.mktime(time.gmtime())
+        self.scraped_time   = Util.now()

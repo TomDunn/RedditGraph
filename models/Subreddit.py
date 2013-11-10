@@ -81,3 +81,10 @@ class Subreddit(Base):
             sub = cls.create(session, display_name)
 
         return sub
+
+    @staticmethod
+    def get_invalid_text():
+        return '<INVALID>'
+
+    def mark_invalid(self):
+        self.display_name = self.get_invalid_text()

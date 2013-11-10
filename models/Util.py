@@ -43,4 +43,8 @@ class Util():
     def patch_author(author):
         if author is None:
             return '[deleted]'
+
+        if type(author) in [str, unicode]:
+            return author
+
         return author.name

@@ -1,68 +1,106 @@
+from __future__ import absolute_import
+
+from celery import group
 import praw
 from praw.helpers import flatten_tree
 from sqlalchemy.orm.exc import NoResultFound
 
 from db import Session
+from helpers.JSONObject import JSONObject
+from helpers.RFactory import r
 from models.Comment import Comment
 from models.Post import Post
 from models.User import User
 from models.Subreddit import Subreddit
 from models.Util import Util
-from helpers.RFactory import r
+from tasks.config.celery import celery
 
 def main(notify):
     session = Session()
 
     subreddit_names = set()
 
-    for sub in session.query(Post.subreddit_id).distinct():
-        try:
-            sub = session.query(Subreddit).filter(Subreddit.id == sub[0]).one()
-            subreddit_names.add(sub.display_name)
-        except NoResultFound:
-            print "none found"
+    gen = session.query(Subreddit) \
+        .filter(Subreddit.display_name != Subreddit.get_invalid_text()) \
+        .order_by(Subreddit.scraped_time) \
+        .limit(2)
 
-    subreddit_names = filter(lambda n: n != None and len(n) > 0, subreddit_names)
+    for subreddit in gen:
+        subreddit_names.add(subreddit.display_name)
 
-    count = session.query(Comment).count()
-    notify("Starting w/ %d" % count)
+    task_group = group(run.s(name,top=2) for name in subreddit_names)
+    results = task_group.apply_async()
 
-    for name in subreddit_names:
-        try:
-            praw_subreddit = r.get_subreddit(name)
-            for praw_submission in praw_subreddit.get_hot(limit=40):
-                for praw_comment in flatten_tree(praw_submission.comments):
-
-                    if not isinstance(praw_comment, praw.objects.Comment):
-                        continue
-
-                    count += 1
-
-                    comment = Comment.get_or_create(session, praw_comment.id)
-                    comment.update_from_praw(praw_comment)
-
-                    author_name = Util.patch_author(praw_comment.author)
-                    user = User.get_or_create(session, author_name)
-                    post = Post.get_or_create(session, praw_comment.link_id)
-
-                    subreddit = Subreddit.get_or_create(session, praw_comment.subreddit.display_name);
-                    subreddit.update_from_praw(praw_subreddit)
-
-                    post.update_from_praw(praw_submission)
-                    post.subreddit_id = subreddit.id
-
-                    comment.author_id   = user.id
-                    comment.post_id     = post.id
-
-                    session.add(comment)
-                    session.add(post)
-                    session.add(subreddit)
-
-                session.commit()
-
-        except praw.requests.exceptions.HTTPError:
-            continue
-        except praw.errors.InvalidSubreddit:
+    for result in results.iterate():
+        if type(result) == str:
+            print "NONE", '\n'
+            subreddit = session.query(Subreddit).filter(Subreddit.display_name == result).one()
+            subreddit.mark_invalid()
+            session.add(subreddit)
+            session.commit()
             continue
 
-    notify("Ending w/ %d" % count)
+        update(session, result)
+
+def update(session, result):
+    praw_subreddit = JSONObject(**result['subreddit'])
+    subreddit = Subreddit.get_or_create(session, praw_subreddit.display_name)
+    #subreddit.update_from_praw(praw_subreddit)
+    #session.add(subreddit)
+    
+    for submission_comments in result['submissions']:
+        praw_submission, comments = submission_comments
+        praw_submission = JSONObject(**praw_submission)
+
+        post = Post.get_or_create(session, praw_submission.id)
+        post.update_from_praw(praw_submission)
+
+        post_author = User.get_or_create(session, praw_submission.author)
+        post.author_id = post_author.id
+        session.add(post)
+
+        for praw_comment in comments:
+            praw_comment = JSONObject(**praw_comment)
+            comment = Comment.get_or_create(session, praw_comment.id)
+            comment.update_from_praw(praw_comment)
+            comment.post_id = post.id
+
+            author = User.get_or_create(session, praw_comment.author)
+            comment.author_id = author.id
+            session.add(comment)
+
+    session.commit()
+
+@celery.task
+def run(name, top=40):
+    try:
+        submissions = []
+        praw_subreddit = r.get_subreddit(name)
+
+        for praw_submission in praw_subreddit.get_hot(limit=top):
+            comments = []
+
+            for praw_comment in flatten_tree(praw_submission.comments):
+
+                if not isinstance(praw_comment, praw.objects.Comment):
+                    continue
+
+                praw_comment.__dict__['author'] = Util.patch_author(praw_comment.author)
+                comments.append(JSONObject(**praw_comment.__dict__).json_safe_dict())
+
+            # force submission to load
+            praw_submission.title
+
+            praw_submission.__dict__['author'] = Util.patch_author(praw_submission.author)
+            submission = JSONObject(**praw_submission.__dict__).json_safe_dict()
+
+            submissions.append((submission, comments))
+
+        # force subreddit to load via praw
+        praw_subreddit.title
+
+        praw_subreddit = JSONObject(**praw_subreddit.__dict__).json_safe_dict()
+        return {'subreddit': praw_subreddit, 'submissions':  submissions}
+
+    except praw.errors.InvalidSubreddit:
+        return name

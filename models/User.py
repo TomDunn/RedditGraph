@@ -61,7 +61,7 @@ class User(Base):
 
         self.created        = p.created
         self.created_utc    = p.created_utc
-        self.scraped_time   = time.mktime(time.gmtime())
+        self.scraped_time   = Util.now()
 
         self.link_karma     = p.link_karma
         self.comment_karma  = p.comment_karma
