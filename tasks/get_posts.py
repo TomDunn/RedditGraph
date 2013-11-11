@@ -1,9 +1,12 @@
+from praw.objects import Subreddit
+
 from db import Session
+from helpers.RFactory import r
 from models.Post import Post
 from models.Subreddit import Subreddit
 from models.User import User
 from models.Util import Util
-from helpers.RFactory import r
+from tasks.config.celery import celery
 
 def main(notify):
     session = Session()
@@ -28,3 +31,8 @@ def main(notify):
 
     diff = session.query(Post).count() - start
     notify("Added %d posts" % diff)
+
+@celery.task
+def get_submissions(subreddit_name, limit=50):
+    gen  = r.get_subreddit(subreddit_name).get_top(limit=limit)
+    return [sub._json_data for sub in gen]

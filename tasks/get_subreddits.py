@@ -1,6 +1,10 @@
+from celery import chain
+import praw
+
 from db import Session
-from models.Subreddit import Subreddit
 from helpers.RFactory import r
+from models.Subreddit import Subreddit
+from tasks.config.celery import celery
 
 def main(notify):
     session = Session()
@@ -19,3 +23,17 @@ def main(notify):
 
     session.commit()
     notify("Now have %d" % count)
+
+@celery.task
+def get_subreddit(display_name):
+    try:
+        subreddit = r.get_subreddit(display_name)
+        subreddit.title # force praw to load
+        return subreddit._json_data
+    except praw.errors.InvalidSubreddit:
+        return None
+    except praw.requests.exceptions.HTTPError as e:
+        if Util.is_400_exception(e):
+            return None
+        else:
+            return False

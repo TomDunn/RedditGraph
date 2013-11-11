@@ -48,3 +48,13 @@ class Util():
             return author
 
         return author.name
+
+    @staticmethod
+    def is_400_exception(e):
+        e = str(e)
+        return '403' in e or '404' in e
+
+    @staticmethod
+    def is_500_exception(e):
+        e = str(e)
+        return '500' in e
