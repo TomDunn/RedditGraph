@@ -4,6 +4,7 @@ import praw
 from db import Session
 from helpers.RFactory import r
 from models.Subreddit import Subreddit
+from models.Util import Util
 from tasks.config.celery import celery
 
 def main(notify):
