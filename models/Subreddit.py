@@ -1,6 +1,6 @@
 import time
 
-from sqlalchemy import Column, Integer, String, Boolean, Float
+from sqlalchemy import Column, Integer, String, Boolean, Float, func
 from sqlalchemy.schema import Sequence
 
 from db import Base
@@ -75,7 +75,9 @@ class Subreddit(Base):
 
     @classmethod
     def get_or_create(cls, session, display_name):
-        sub = session.query(cls).filter(cls.display_name == display_name).first()
+        sub = session.query(cls) \
+            .filter(func.lower(cls.display_name) == func.lower(display_name)) \
+            .first()
         
         if (sub == None):
             sub = cls.create(session, display_name)

@@ -1,7 +1,7 @@
 import time
 
 from pydispatch import dispatcher
-from sqlalchemy import Column, Integer, String, Boolean, Float, SmallInteger, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, Float, SmallInteger, ForeignKey, func
 from sqlalchemy.schema import Sequence
 
 from db import Base
@@ -73,7 +73,9 @@ class User(Base):
 
     @classmethod
     def get_or_create(cls, session, username):
-        user = session.query(cls).filter(cls.name == username).first()
+        user = session.query(cls) \
+            .filter(func.lower(cls.name) == func.lower(username)) \
+            .first()
 
         if (user == None):
             user = User.create(session, username)
