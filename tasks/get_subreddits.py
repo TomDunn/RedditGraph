@@ -26,14 +26,17 @@ def main(notify):
 
 @celery.task
 def get_subreddit(display_name):
+    result = dict()
+    result.update({'value': {'display_name': display_name}})
+
     try:
         subreddit = r.get_subreddit(display_name)
         subreddit.title # force praw to load
-        return subreddit._json_data
+        result.update({'value': subreddit._json_data})
     except praw.errors.InvalidSubreddit:
-        return None
+        result.update({'invalid': True})
     except praw.requests.exceptions.HTTPError as e:
         if Util.is_400_exception(e):
-            return None
-        else:
-            return False
+            result.update({'invalid': True})
+
+    return result

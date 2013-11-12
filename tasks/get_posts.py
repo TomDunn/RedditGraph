@@ -34,5 +34,5 @@ def main(notify):
 
 @celery.task
 def get_submissions(subreddit_name, limit=50):
-    gen  = r.get_subreddit(subreddit_name).get_top(limit=limit)
+    gen  = r.get_subreddit(subreddit_name).get_hot(limit=limit)
     return [sub._json_data for sub in gen]
