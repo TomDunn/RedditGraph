@@ -1,5 +1,3 @@
-from time import time
-
 from celery import group
 import praw
 
@@ -37,6 +35,7 @@ def crawl(subreddit_name):
 def main(notify):
     session = Session()
     gen = session.query(Subreddit.display_name) \
+        .filter(Subreddit.display_name != Subreddit.get_invalid_text()) \
         .order_by(Subreddit.scraped_time) \
         .limit(500)
 
@@ -49,7 +48,6 @@ def main(notify):
         session.commit()
 
 def handle_crawl_result(session, res):
-    print time()
     if not res.get('value'):
         return
 
@@ -90,6 +88,3 @@ def handle_crawl_result(session, res):
         comment.update_from_praw(praw_comment)
         session.add(comment)
         session.add(author)
-
-    print time()
-    print '\n'
