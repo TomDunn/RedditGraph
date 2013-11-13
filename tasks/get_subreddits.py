@@ -28,7 +28,7 @@ def main(notify):
 @celery.task
 def get_subreddit(display_name):
     result = dict()
-    result.update({'value': {'display_name': display_name}})
+    result.update({'value': {'subreddit': {'display_name': display_name}}})
 
     try:
         subreddit = r.get_subreddit(display_name)

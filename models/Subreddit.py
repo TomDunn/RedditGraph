@@ -87,4 +87,4 @@ class Subreddit(Base):
         return '<INVALID>'
 
     def mark_invalid(self):
-        self.display_name = self.get_invalid_text()
+        self.name = self.get_invalid_text()
