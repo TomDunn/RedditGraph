@@ -1,5 +1,3 @@
-import time
-
 from sqlalchemy import Column, Integer, String, Boolean, Float, func
 from sqlalchemy.schema import Sequence
 
