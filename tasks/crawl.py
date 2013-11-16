@@ -24,7 +24,7 @@ def crawl(subreddit_name):
 
     subreddit = res.get('value')
 
-    submissions = get_submissions(subreddit_name=subreddit_name, limit=20)
+    submissions = get_submissions(display_name=subreddit_name, limit=20)
     comments    = get_comments(submissions=submissions)
 
     res = dict()

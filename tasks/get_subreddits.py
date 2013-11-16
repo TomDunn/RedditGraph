@@ -26,7 +26,6 @@ def main(notify):
     session.commit()
     notify("Now have %d" % count)
 
-@celery.task
 @praw_retry_http500
 def get_subreddit(display_name=''):
     result = dict()

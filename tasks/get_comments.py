@@ -14,7 +14,6 @@ from models.Subreddit import Subreddit
 from models.Util import Util
 from tasks.config.celery import celery
 
-@celery.task
 @praw_retry_http500
 def get_comments(submissions=None):
     if submissions is None:

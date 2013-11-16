@@ -33,8 +33,7 @@ def main(notify):
     diff = session.query(Post).count() - start
     notify("Added %d posts" % diff)
 
-@celery.task
 @praw_retry_http500
-def get_submissions(subreddit_name='all', limit=50):
-    gen  = r.get_subreddit(subreddit_name).get_hot(limit=limit)
+def get_submissions(display_name='all', limit=50):
+    gen  = r.get_subreddit(display_name).get_hot(limit=limit)
     return [sub._json_data for sub in gen]
