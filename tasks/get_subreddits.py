@@ -3,6 +3,7 @@ import praw
 
 from db import Session
 from helpers.RFactory import r
+from helpers.decorators import praw_retry_http500
 from models.Subreddit import Subreddit
 from models.Util import Util
 from tasks.config.celery import celery
@@ -26,7 +27,8 @@ def main(notify):
     notify("Now have %d" % count)
 
 @celery.task
-def get_subreddit(display_name):
+@praw_retry_http500
+def get_subreddit(display_name=''):
     result = dict()
     result.update({'value': {'subreddit': {'display_name': display_name}}})
 
@@ -39,5 +41,7 @@ def get_subreddit(display_name):
     except praw.requests.exceptions.HTTPError as e:
         if Util.is_400_exception(e):
             result.update({'invalid': True})
+        else:
+            raise e
 
     return result

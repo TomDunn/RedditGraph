@@ -17,15 +17,15 @@ from tasks.get_comments import get_comments
 
 @celery.task
 def crawl(subreddit_name):
-    res = get_subreddit(subreddit_name)
+    res = get_subreddit(display_name=subreddit_name)
 
     if res.get('invalid') or not res.get('value'):
         return res
 
     subreddit = res.get('value')
 
-    submissions = get_submissions(subreddit_name, limit=50)
-    comments    = get_comments(submissions)
+    submissions = get_submissions(subreddit_name=subreddit_name, limit=20)
+    comments    = get_comments(submissions=submissions)
 
     res = dict()
     res.update({
@@ -39,15 +39,18 @@ def main(notify):
     gen = session.query(Subreddit.display_name) \
         .filter(Subreddit.name != Subreddit.get_invalid_text()) \
         .order_by(Subreddit.scraped_time) \
-        .limit(500)
+        .limit(1000)
 
     names = map(lambda n: n[0], gen)
     task_group = group(crawl.s(n) for n in names)
     result     = task_group.apply_async()
 
+    count = 0
     for res in result.iterate():
+        print count
         handle_crawl_result(session, res)
         session.commit()
+        count += 1
 
 def handle_crawl_result(session, res):
     print time()

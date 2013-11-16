@@ -2,6 +2,7 @@ from praw.objects import Subreddit
 
 from db import Session
 from helpers.RFactory import r
+from helpers.decorators import praw_retry_http500
 from models.Post import Post
 from models.Subreddit import Subreddit
 from models.User import User
@@ -33,6 +34,7 @@ def main(notify):
     notify("Added %d posts" % diff)
 
 @celery.task
-def get_submissions(subreddit_name, limit=50):
+@praw_retry_http500
+def get_submissions(subreddit_name='all', limit=50):
     gen  = r.get_subreddit(subreddit_name).get_hot(limit=limit)
     return [sub._json_data for sub in gen]

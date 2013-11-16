@@ -56,5 +56,8 @@ class Util():
 
     @staticmethod
     def is_500_exception(e):
+        codes = ['500', '502', '503', '504']
         e = str(e)
-        return '500' in e
+
+        matches = filter(lambda code: code in e, codes)
+        return len(matches) > 0

@@ -6,6 +6,7 @@ from praw.helpers import flatten_tree
 
 from db import Session
 from helpers.RFactory import r
+from helpers.decorators import praw_retry_http500
 from models.Comment import Comment
 from models.Post import Post
 from models.User import User
@@ -14,7 +15,11 @@ from models.Util import Util
 from tasks.config.celery import celery
 
 @celery.task
-def get_comments(submissions, top=40):
+@praw_retry_http500
+def get_comments(submissions=None):
+    if submissions is None:
+        return []
+
     submissions = map(lambda s: praw.objects.Submission(r, json_dict=s), submissions)
     comments    = []
 
