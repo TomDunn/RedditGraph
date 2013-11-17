@@ -1,4 +1,4 @@
-from praw.objects import Subreddit
+import praw
 
 from db import Session
 from helpers.RFactory import r
@@ -35,5 +35,11 @@ def main(notify):
 
 @praw_retry_http500
 def get_submissions(display_name='all', limit=50):
-    gen  = r.get_subreddit(display_name).get_hot(limit=limit)
-    return [sub._json_data for sub in gen]
+    try:
+        gen  = r.get_subreddit(display_name).get_hot(limit=limit)
+        return [sub._json_data for sub in gen]
+    except praw.requests.exceptions.HTTPError as e:
+        if not Util.is_400_exception(e):
+            raise e
+
+    return None

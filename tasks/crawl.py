@@ -1,4 +1,5 @@
 from time import time
+from json import dumps
 
 from celery import group
 import praw
@@ -19,18 +20,21 @@ from tasks.get_comments import get_comments
 def crawl(subreddit_name):
     res = get_subreddit(display_name=subreddit_name)
 
-    if res.get('invalid') or not res.get('value'):
+    if res.get('invalid'):
         return res
 
-    subreddit = res.get('value')
-
+    subreddit   = res.get('value').get('subreddit')
     submissions = get_submissions(display_name=subreddit_name, limit=20)
-    comments    = get_comments(submissions=submissions)
+
+    comments = None
+    
+    if submissions is None:
+        res.update({'invalid': True})
+    else:
+        comments = get_comments(submissions=submissions)
 
     res = dict()
-    res.update({
-        'value': {'subreddit': subreddit, 'submissions': submissions, 'comments': comments}
-    })
+    res.update({'value': {'subreddit': subreddit, 'submissions': submissions, 'comments': comments}})
 
     return res
 
@@ -39,21 +43,44 @@ def main(notify):
     gen = session.query(Subreddit.display_name) \
         .filter(Subreddit.name != Subreddit.get_invalid_text()) \
         .order_by(Subreddit.scraped_time) \
-        .limit(1000)
+        .limit(10)
 
     names = map(lambda n: n[0], gen)
     task_group = group(crawl.s(n) for n in names)
     result     = task_group.apply_async()
 
+    session.close()
     count = 0
+
     for res in result.iterate():
-        print count
-        handle_crawl_result(session, res)
+        start = time()
+        print start
+
+        name = res.get('value').get('subreddit').get('display_name')
+
+        subreddit = Subreddit.get_or_create(session, name)
+        subreddit.touch()
+
+        if res.get('invalid'):
+            subreddit.mark_invalid()
+
+        session.add(subreddit)
         session.commit()
-        count += 1
+
+        if res.get('invalid'):
+            continue
+
+        fname = "data/crawls/%s_%s.json" % (name, str(int(time())))
+        save_to_file(fname, res)
+        print time() - start, '\n'
+
+def save_to_file(fname, result):
+    with open(fname, 'wb') as f:
+        f.write(dumps(result) + '\n')
 
 def handle_crawl_result(session, res):
-    print time()
+    start = time()
+    print start
     if not res.get('value'):
         return
 
@@ -85,7 +112,13 @@ def handle_crawl_result(session, res):
     comments = res.get('value').get('comments')
     praw_comments = map(lambda c: praw.objects.Comment(r, json_dict=c), comments)
 
-    for praw_comment in praw_comments:
+    print len(praw_comments)
+    print time() - start
+
+    praw_comments = sorted(praw_comments, key=lambda c: c.ups - c.downs, reverse=True)
+    print map(lambda c: c.ups - c.downs, praw_comments[0:10])
+
+    for praw_comment in praw_comments[0:400]:
         submission = filter(lambda s: s.reddit_id == Util.plain_id(praw_comment.link_id), submissions)[0]
         author = User.get_or_create(session, Util.patch_author(praw_comment.author))
         comment = Comment.get_or_create(session, praw_comment.id)
@@ -95,5 +128,5 @@ def handle_crawl_result(session, res):
         session.add(comment)
         session.add(author)
 
-    print time()
+    print time() - start
     print '\n'

@@ -34,7 +34,7 @@ def get_subreddit(display_name=''):
     try:
         subreddit = r.get_subreddit(display_name)
         subreddit.title # force praw to load
-        result.update({'value': subreddit._json_data})
+        result.update({'value': {'subreddit': subreddit._json_data}})
     except praw.errors.InvalidSubreddit:
         result.update({'invalid': True})
     except praw.requests.exceptions.HTTPError as e:
